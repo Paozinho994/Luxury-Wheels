@@ -1,1 +1,1 @@
-templates/** linguist-documentation
+*.html linguist-detectable=false
