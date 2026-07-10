@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Wheels</title>
+    <!-- Folha de estilo (main.css)-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <!-- Bootstrap 5-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/lux/bootstrap.min.css">
+    <!-- Fontes de Google Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-dark: #2C3E50;
+            --accent-gold: #eab308;
+            --body-bg: #f8fafc;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Hero Section com Gradiente Dark Knight */
+        .hero-section {
+            background: #2C3E50; /* Cor de segurança */
+            background: linear-gradient(to left, #2C3E50, #000000); /* Dark Knight Puro */
+            padding: 100px 0 140px 0; /* Aumentado o espaço inferior para a barra de pesquisa */
+            color: white;
+            text-align: center;
+        }
+
+        /* Caixa de Pesquisa Flutuante */
+        .search-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            background: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cartões de Veículos Avançados */
+        .vehicle-card {
+            border: none;
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            overflow: hidden;
+        }
+
+        .vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        .vehicle-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #f1f5f9;
+        }
+
+        .vehicle-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .vehicle-card:hover .vehicle-img {
+            transform: scale(1.05);
+        }
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(15, 23, 42, 0.85);
+            color: white;
+            backdrop-filter: blur(4px);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .spec-icon-box {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .btn-reserve {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-reserve:hover {
+            background-color: #1e293b;
+            color: white;
+        }
+
+        .price-tag {
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1.6rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bloco para exibir mensagens de sucesso ou erro do Flask -->
+    {% if not ocultar_flash_global %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mt-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-flash alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 8px;">
+
+                            {% if category == 'success' %}
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                            {% elif category == 'danger' or category == 'error' %}
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                            {% endif %}
+
+                            {{ message }}
+
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+    <!-- Barra de Navegação Elegante -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-dark);">
+        <div class="container">
+            <!-- Logótipo -->
+            <a class="navbar-brand fw-bold fs-4" href="/">
+                <i class="bi bi-car-front-fill me-2 text-warning"></i>PREMIUM<span class="text-warning">DRIVE</span>
+            </a>
+            <!-- Botão para ecrãs de telemóvel (Hambúrguer) -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPremiumDrive" aria-controls="navbarPremiumDrive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Links da Navbar -->
+            <div class="collapse navbar-collapse" id="navbarPremiumDrive">
+                <div class="navbar-nav ms-auto align-items-lg-center">
+                    {% if current_user.is_authenticated %}
+                        <!-- Menu visível apenas para Clientes Autenticados -->
+                        <span class="nav-link text-white me-3 mb-2 mb-lg-0">
+                            <i class="bi bi-person-circle me-1 text-warning"></i>Olá, {{ current_user.nome }}
+                        </span>
+                        <a class="nav-item nav-link me-2" href="/minhas-reservas">As Minhas Reservas</a>
+                        <a class="btn btn-outline-light btn-sm px-3 fw-semibold" href="/logout">Sair</a>
+                    {% else %}
+                        <!-- Menu visível apenas para Visitantes -->
+                        <a class="nav-item nav-link me-2" href="/login">Entrar</a>
+                        <a class="btn btn-warning btn-sm px-3 fw-bold text-dark" href="/registo">Registar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}
+        <!-- Condição que garante que o Hero só aparece na página principal (/) -->
+        {% if request.path == '/' %}
+        <!-- Secção de Boas-Vindas (Hero) -->
+        <header class="hero-section text-center">
+            <div class="container">
+                <h1 class="display-4 fw-bold mb-3">Luxury Wheels</h1>
+                <p class="lead text-white-50 fs-5 mb-0">Escolha entre centenas de veículos inspecionados e prontos a viajar.</p>
+            </div>
+        </header>
+        {% endif %}
+    <div class="container mb-5">
+
+        <!-- Painel de Procura Melhorado -->
+        <div class="card search-card p-4 mx-auto style-form">
+            <form action="/" method="GET" class="row g-3 align-items-end">
+
+                <!-- Data de Início -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="date-input-group">
+                        <label class="form-label text-secondary fw-semibold small">
+                            <i class="bi bi-calendar-check me-1"></i>Data de Início
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="date" id="main_data_inicio" name="data_inicio" class="custom-date-input" value="{{ request.args.get('data_inicio', '') }}">
+                            <i class="bi bi-calendar3 custom-calendar-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data de Fim -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="date-input-group">
+                        <label class="form-label text-secondary fw-semibold small">
+                            <i class="bi bi-calendar-x me-1"></i>Data de Fim
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="date" id="main_data_fim" name="data_fim" class="custom-date-input" value="{{ request.args.get('data_fim', '') }}">
+                            <i class="bi bi-calendar3 custom-calendar-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- O que procura (Marca/Modelo) -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label text-secondary fw-semibold small">
+                        <i class="bi bi-search me-1"></i>O que procura?
+                    </label>
+                    <input type="text" name="fim_pesquisa" class="form-control fs-6" placeholder="Marca, modelo ou palavra-chave..." value="{{ request.args.get('fim_pesquisa', '') }}" style="height: 38px;">
+                </div>
+
+                <!-- Quantidade de Pessoas (Lugares: 2, 4 ou 5) -->
+                <div class="col-lg-2 col-md-3">
+                    <label class="form-label text-secondary fw-semibold small">
+                        <i class="bi bi-people me-1"></i>Pessoas
+                    </label>
+                    <select name="lugar" class="form-select form-select-sm py-0" style="height: 38px;">
+                        <option value="">Todos</option>
+                        <option value="2" {{ 'selected' if request.args.lugar == '2' else '' }}>2 Pessoas</option>
+                        <option value="4" {{ 'selected' if request.args.lugar == '4' else '' }}>4 Pessoas</option>
+                        <option value="5" {{ 'selected' if request.args.lugar == '5' else '' }}>5 Pessoas</option>
+                        <option value="7" {{ 'selected' if request.args.lugar == '7' else '' }}>7 Pessoas</option>
+                    </select>
+                </div>
+
+                <!-- Preço Máximo por Diária -->
+                <div class="col-lg-2 col-md-3">
+                    <label class="form-label text-secondary fw-semibold small">
+                        <i class="bi bi-currency-euro me-1"></i>Preço Máximo/dia
+                    </label>
+                    <input type="number" name="preco_max" class="form-control" placeholder="Ex: 100" value="{{ request.args.get('preco_max', '') }}" style="height: 38px;" min="0">
+                </div>
+
+                <!-- Botão Procurar (Ocupa 2 colunas em LG) -->
+                <div class="col-lg-1 col-md-4 d-grid">
+                    <button type="submit" class="btn btn-warning fw-bold shadow-sm text-dark d-flex align-items-center justify-content-center" style="height: 38px; min-width: 100px;">
+                        Procurar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Título da Listagem -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+            <h3 class="fw-bold text-dark m-0">Frota Disponível</h3>
+            {% if request.args.get('data_inicio') %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+                    <i class="bi bi-sliders me-1"></i>Resultados Filtrados
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Grelha de Veículos -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for veiculo in veiculos %}
+            <div class="col">
+                <div class="card h-100 vehicle-card shadow-sm">
+
+                    <!-- Contentor da Imagem -->
+                    <div class="vehicle-img-wrapper">
+                        <span class="category-badge">{{ veiculo.categoria }}</span>
+                        <!-- Verificação robusta para a imagem de teste -->
+                        {% if not veiculo.url_imagem or 'placehold' in veiculo.url_imagem %}
+                            <img src="{{ url_for('static', filename='imagens/Volvo_V60.jpg') }}" class="vehicle-img" alt="Volvo V60">
+                        {% else %}
+                            <img src="{{ url_for('static', filename=veiculo.url_imagem) }}" class="vehicle-img" alt="{{ veiculo.marca }} {{ veiculo.modelo }}">
+                        {% endif %}
+                    </div>
+
+                    <!-- Corpo do Cartão -->
+                    <div class="card-body d-flex flex-column p-4">
+                        <h4 class="card-title fw-bold text-dark mb-1">{{ veiculo.marca }} {{ veiculo.modelo }}</h4>
+                        <p class="text-success fw-bold fs-5 mb-3">
+                            {{ "%.2f"|format(veiculo.valor_diaria) }}€ <span class="text-secondary small fw-normal">/ dia</span>
+                        </p>
+
+                        <!-- Grelha de Especificações Técnicas -->
+                        <div class="row g-2 my-auto pb-4">
+                            <div class="col-4">
+                                <div class="spec-icon-box">
+                                    <i class="bi bi-people d-block fs-5 text-primary mb-1"></i>
+                                    <strong>{{ veiculo.qtd_pessoas }}</strong> Lugares
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="spec-icon-box">
+                                    <i class="bi bi-gear d-block fs-5 text-primary mb-1"></i>
+                                    <span class="small fw-semibold">{{ veiculo.transmissao }}</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="spec-icon-box">
+                                    <i class="bi bi-fuel-pump d-block fs-5 text-primary mb-1"></i>
+                                    <span class="small fw-semibold">{{ veiculo.tipo_veiculo }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rodapé do Cartão com Preço e Ação -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-auto">
+                            <div>
+                                <span class="price-tag">{{ "%.2f"|format(veiculo.valor_diaria) }}€</span>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">por dia total líquido</small>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReserva{{ veiculo.id }}">
+                                Reservar <i class="bi bi-arrow-right-short ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% endblock %}
+    </main>
+
+    <!-- Modal Modernizado de Reserva -->
+    {% for veiculo in veiculos %}
+        <div class="modal fade" id="modalReserva{{ veiculo.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                    <div class="modal-header bg-dark text-white border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                        <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-check me-2 text-warning"></i>Confirmar Reserva</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form action="/reservar/{{ veiculo.id }}" method="POST">
+                        <div class="modal-body p-4">
+
+                            <!-- Resumo do Carro Selecionado -->
+                            <div class="d-flex align-items-center mb-4 bg-light p-3 rounded-3">
+                                {% if not veiculo.url_imagem or 'placehold' in veiculo.url_imagem %}
+                                <img src="{{ url_for('static', filename='imagens/Volvo_V60.jpg') }}" alt="Carro" class="rounded" style="width: 90px; height: 60px; object-fit: cover;">
+                                {% else %}
+                                <img src="{{ url_for('static', filename=veiculo.url_imagem) }}" alt="{{ veiculo.marca }} {{ veiculo.modelo }}" class="rounded" style="width: 90px; height: 60px; object-fit: cover;">
+                                {% endif %}
+                                <div class="ms-3">
+                                    <h6 class="fw-bold mb-0 text-dark">{{ veiculo.marca }} {{ veiculo.modelo }}</h6>
+                                    <span class="badge bg-dark text-white mt-1">{{ veiculo.categoria }}</span>
+                                    <span class="text-success fw-bold d-block mt-1">{{ "%.2f"|format(veiculo.valor_diaria) }}€ / dia</span>
+                                </div>
+                            </div>
+
+                            <!-- Datas de Aluguer dentro do Modal -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-semibold" for="modal_data_inicio_{{ veiculo.id }}">Data de Início</label>
+                                    <!-- O oninput ativa a função a cada alteração de data -->
+                                    <input type="date" id="modal_data_inicio_{{ veiculo.id }}" name="data_inicio" class="form-control" oninput="calcularPrecoModalDirect({{ veiculo.id }})" required value="{{ request.args.get('data_inicio', '') }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-semibold" for="modal_data_fim_{{ veiculo.id }}">Data de Fim</label>
+                                    <input type="date" id="modal_data_fim_{{ veiculo.id }}" name="data_fim" class="form-control" oninput="calcularPrecoModalDirect({{ veiculo.id }})" required value="{{ request.args.get('data_fim', '') }}">
+                                </div>
+                            </div>
+
+                            <!-- Campo invisível que guarda o preço por dia deste carro específico -->
+                            <input type="hidden" id="modal_diaria_{{ veiculo.id }}" value="{{ veiculo.valor_diaria }}">
+
+                            <!-- Painel Informativo de Preço Líquido (Atualizado) -->
+                            <div class="alert alert-info py-3 px-3 mb-3 rounded-3" style="font-size: 0.85rem;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary"><i class="bi bi-tag me-1"></i> Preço da Diária:</span>
+                                    <strong class="text-dark">{{ "%.2f"|format(veiculo.valor_diaria) }}€</strong>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                    <span class="fw-semibold text-dark"><i class="bi bi-calculator me-1 text-primary"></i> Total Líquido:</span>
+                                    <!-- O JavaScript vai injetar o preço e os dias calculados exatamente aqui -->
+                                    <strong class="fs-5 text-success" id="precoTotalModal{{ veiculo.id }}">Aguardando datas...</strong>
+                                </div>
+                            </div>
+
+                            <!-- Seleção da Forma de Pagamento Física -->
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-semibold">Forma de Pagamento</label>
+                                <select name="forma_pagamento_id" class="form-select" required>
+                                    <option value="" disabled selected>Escolha o método de pagamento...</option>
+                                    <option value="1">Cartão de Crédito</option>
+                                    <option value="2">Multibanco</option>
+                                    <option value="3">MB Way</option>
+                                    <option value="4">PayPal</option>
+                                    <option value="5">Transferência Bancária</option>
+                                    <option value="6">Dinheiro / Balcão</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0">
+                            <button type="button" class="btn btn-light fw-semibold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" id="btn_submit_{{ veiculo.id }}" class="btn btn-warning fw-bold px-4 text-dark shadow-sm" disabled>Confirmar Aluguer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script>
+    // FUNÇÃO A: Calcula o preço total em Euros e os dias em tempo real
+    function calcularPrecoModalDirect(veiculoId) {
+        const inputInicio = document.getElementById(`modal_data_inicio_${veiculoId}`);
+        const inputFim = document.getElementById(`modal_data_fim_${veiculoId}`);
+        const inputDiaria = document.getElementById(`modal_diaria_${veiculoId}`);
+        const txtTotal = document.getElementById(`precoTotalModal${veiculoId}`);
+        const btnSubmit = document.getElementById(`btn_submit_${veiculoId}`);
+
+        if (!inputInicio || !inputFim || !inputDiaria || !txtTotal) return;
+
+        const inicioVal = inputInicio.value;
+        const fimVal = inputFim.value;
+
+        // Só avança se os dois campos estiverem preenchidos com datas completas
+        if (inicioVal && fimVal) {
+            // Divide o texto AAAA-MM-DD por hífens para obter os inteiros corretos
+            const partsInicio = inicioVal.split('-');
+            const partsFim = fimVal.split('-');
+
+            // Se a divisão não gerou ano, mês e dia válidos, aborta
+            if (partsInicio.length !== 3 || partsFim.length !== 3) {
+                txtTotal.innerText = "Aguardando datas...";
+                if (btnSubmit) btnSubmit.disabled = true;
+                return;
+            }
+
+            // Cria a data local exata (Mês em JS vai de 0 a 11, por isso subtrai-se 1)
+            const d1 = new Date(parseInt(partsInicio[0], 10), parseInt(partsInicio[1], 10) - 1, parseInt(partsInicio[2], 10));
+            const d2 = new Date(parseInt(partsFim[0], 10), parseInt(partsFim[1], 10) - 1, parseInt(partsFim[2], 10));
+
+            const valorDiaria = parseFloat(inputDiaria.value);
+
+            // Subtração de milissegundos convertida para dias inteiros
+            const diferencaTempo = d2.getTime() - d1.getTime();
+            let dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+
+            if (dias < 0) {
+                txtTotal.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Data de fim inválida</span>';
+                if (btnSubmit) btnSubmit.disabled = true;
+            } else {
+                if (dias === 0) dias = 1; // Mesmo dia = 1 diária
+
+                const precoTotal = dias * valorDiaria;
+                txtTotal.innerHTML = `${precoTotal.toFixed(2)}€ <span class="text-secondary small fw-normal">(${dias} ${dias === 1 ? 'dia' : 'dias'})</span>`;
+
+                // ATENÇÃO: Liberta o botão de envio apenas se as datas forem totalmente válidas!
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
+        } else {
+            txtTotal.innerText = "Aguardando datas...";
+            if (btnSubmit) btnSubmit.disabled = true;
+        }
+    }
+
+    // EVENTOS AUTOMÁTICOS
+    document.addEventListener("DOMContentLoaded", function() {
+        const modais = document.querySelectorAll('.modal');
+        modais.forEach(function(modal) {
+
+            // Gatilho 1: Faz o cálculo automático assim que o modal acaba de abrir
+            modal.addEventListener('show.bs.modal', function () {
+                const veiculoId = this.id.replace('modalReserva', '').trim();
+                calcularPrecoModalDirect(veiculoId);
+            });
+
+            // Gatilho Interno: Escuta alterações nos inputs de data dentro do modal
+            const inputsData = modal.querySelectorAll('input[type="date"]');
+            inputsData.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    const veiculoId = this.id.split('_').pop();
+                    calcularPrecoModalDirect(veiculoId);
+                });
+            });
+        });
+
+        // Gatilho 2: Limpar alertas flash
+        const alertasFlash = document.querySelectorAll('.alert-dismissible');
+        alertasFlash.forEach(function(alerta) {
+            if (alerta.closest('.modal')) return;
+
+            setTimeout(function() {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alerta);
+                    if (bsAlert) bsAlert.close();
+                } else {
+                    alerta.style.display = 'none';
+                }
+            }, 4000);
+        });
+    });
+    </script>
+</body>
+</html>
+
+

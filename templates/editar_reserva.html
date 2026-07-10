@@ -1,0 +1,156 @@
+{% extends 'index.html' %}
+{% set ocultar_flash_global = true %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <!-- Mensagens de Alerta (Flash) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Cartão Principal -->
+            <div class="card shadow-sm" style="border-radius: 10px;">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="card-title m-0 fw-bold">
+                        <i class="bi bi-pencil-square me-2"></i>Alterar Datas da Reserva #{{ reserva.id }}
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Resumo do Veículo -->
+                    <div class="mb-4 p-3 bg-light border rounded">
+                        <h6 class="fw-bold text-secondary mb-1">Veículo Reservado</h6>
+                        <p class="m-0 fw-semibold text-dark">{{ reserva.veiculo.marca }} {{ reserva.veiculo.modelo }}</p>
+                        <small class="text-muted">Preço diário: {{ "%.2f"|format(reserva.veiculo.valor_diaria) }}€</small>
+                    </div>
+
+                    <!-- Formulário de Edição -->
+                    <form action="{{ url_for('editar_reserva', reserva_id=reserva.id) }}" method="POST">
+
+                        <!-- Input Escondido para indicar a Ação ao Python -->
+                        <input type="hidden" name="acao" value="alterar datas">
+                        <!-- Campo invisível que guarda o preço por dia deste carro específico para o JS -->
+                        <input type="hidden" id="edit_modal_diaria" value="{{ reserva.veiculo.valor_diaria }}">
+
+                        <!-- Data de Início -->
+                        <div class="mb-3">
+                            <label for="nova_data_inicio" class="form-label fw-semibold">Nova Data de Início</label>
+                            <input type="date"
+                                   id="nova_data_inicio"
+                                   name="nova_data_inicio"
+                                   class="form-control"
+                                   value="{{ reserva.data_inicio }}"
+                                   min="{{ hoje }}"
+                                   required>
+                        </div>
+
+                        <!-- Data de Fim -->
+                        <div class="mb-4">
+                            <label for="nova_data_fim" class="form-label fw-semibold">Nova Data de Fim</label>
+                            <input type="date"
+                                   id="nova_data_fim"
+                                   name="nova_data_fim"
+                                   class="form-control"
+                                   value="{{ reserva.data_fim }}"
+                                   required>
+                        </div>
+
+                        <!-- Painel Informativo de Preço Líquido (Atualizado em tempo real) -->
+                        <div class="alert alert-info py-3 px-3 mb-4 rounded-3" style="font-size: 0.85rem; text-transform: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-secondary"><i class="bi bi-tag me-1"></i> Valor da Diária:</span>
+                                <strong class="text-dark">{{ "%.2f"|format(reserva.veiculo.valor_diaria) }}€</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                <span class="fw-semibold text-dark"><i class="bi bi-calculator me-1 text-primary"></i> Novo Total Líquido:</span>
+                                <strong class="fs-5 text-success" id="editPrecoTotal">A calcular...</strong>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark fw-bold py-2" style="border-radius: 6px;">
+                                <i class="bi bi-check-circle me-1"></i>Guardar Alterações
+                            </button>
+                            <a href="{{ url_for('minhas_reservas') }}" class="btn btn-outline-secondary fw-semibold py-2" style="border-radius: 6px;">
+                                Voltar para as Minhas Reservas
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function calcularPrecoEdicao() {
+    const inputInicio = document.getElementById('nova_data_inicio');
+    const inputFim = document.getElementById('nova_data_fim');
+    const inputDiaria = document.getElementById('edit_modal_diaria');
+    const txtTotal = document.getElementById('editPrecoTotal');
+    const btnSubmit = document.getElementById('btn_guardar_edicao');
+
+    if (!inputInicio || !inputFim || !inputDiaria || !txtTotal) return;
+
+    const inicioVal = inputInicio.value;
+    const fimVal = inputFim.value;
+
+    if (inicioVal && fimVal) {
+        const partsInicio = inicioVal.split('-');
+        const partsFim = fimVal.split('-');
+
+        if (partsInicio.length !== 3 || partsFim.length !== 3) {
+            txtTotal.innerText = "A calcular...";
+            if (btnSubmit) btnSubmit.disabled = true;
+            return;
+        }
+
+        // Constrói os objetos Date locais estáveis
+        const d1 = new Date(parseInt(partsInicio[0], 10), parseInt(partsInicio[1], 10) - 1, parseInt(partsInicio[2], 10));
+        const d2 = new Date(parseInt(partsFim[0], 10), parseInt(partsFim[1], 10) - 1, parseInt(partsFim[2], 10));
+
+        const valorDiaria = parseFloat(inputDiaria.value);
+        const diferencaTempo = d2.getTime() - d1.getTime();
+        let dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+
+        if (dias < 0) {
+            txtTotal.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Data de fim inválida</span>';
+            if (btnSubmit) btnSubmit.disabled = true;
+        } else {
+            if (dias === 0) dias = 1; // Mesmo dia = 1 diária
+
+            const precoTotal = dias * valorDiaria;
+            txtTotal.innerHTML = `${precoTotal.toFixed(2)}€ <span class="text-secondary small fw-normal">(${dias} ${dias === 1 ? 'dia' : 'dias'})</span>`;
+            if (btnSubmit) btnSubmit.disabled = false;
+        }
+    } else {
+        txtTotal.innerText = "A aguardar datas...";
+        if (btnSubmit) btnSubmit.disabled = true;
+    }
+}
+
+// Ativa a escuta assim que entra na página
+document.addEventListener("DOMContentLoaded", function() {
+    const inputInicio = document.getElementById('nova_data_inicio');
+    const inputFim = document.getElementById('nova_data_fim');
+
+    if (inputInicio && inputFim) {
+        calcularPrecoEdicao(); // Calcula logo com os dados vindos da base de dados
+        inputInicio.addEventListener('change', calcularPrecoEdicao);
+        inputFim.addEventListener('change', calcularPrecoEdicao);
+    }
+});
+</script>
+{% endblock %}

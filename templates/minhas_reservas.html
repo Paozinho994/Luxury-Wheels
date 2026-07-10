@@ -1,0 +1,103 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container" style="margin-top: 40px; margin-bottom: 80px;">
+
+    <!-- Cabeçalho da Página -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif;">As Minhas Reservas</h2>
+            <p class="text-secondary small mb-0">Consulte o histórico e o estado dos seus alugueres premium</p>
+        </div>
+        <a href="/" class="btn btn-outline-dark btn-sm fw-semibold px-3" style="border-radius: 8px;">
+            <i class="bi bi-plus-lg me-1"></i>Nova Reserva
+        </a>
+    </div>
+
+    <!-- Se o cliente NÃO tiver reservas registradas -->
+    {% if not reservas %}
+        <div class="card p-5 text-center shadow-sm" style="border-radius: 12px; border: 1px solid #ced4da; background: white;">
+            <div class="mb-3">
+                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="fw-bold text-secondary">Ainda não efetuou nenhuma reserva</h4>
+            <p class="text-muted small mb-4">Explore a nossa frota exclusiva e escolha o veículo ideal para si.</p>
+            <a href="/" class="btn btn-warning fw-bold text-dark px-4 py-2 shadow-sm" style="border-radius: 8px;">
+                Ver Frota Disponível
+            </a>
+        </div>
+    {% else %}
+
+        <!-- Tabela de Reservas Ativas e Passadas -->
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-white">
+                    <thead class="table-dark" style="background-color: #181818;">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase fs-7 fw-bold text-white-50">Reserva ID</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50">Veículo</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50">Data de Início</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50">Data de Fim</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50">Total Pago</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50 text-center">Estado</th>
+                            <th class="py-3 text-uppercase fs-7 fw-bold text-white-50 text-center pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reserva in reservas %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">#{{ reserva.id }}</td>
+                                <td><div class="fw-semibold text-dark">{{ reserva.veiculo.marca }} {{ reserva.veiculo.modelo }}</div></td>
+                                <td class="text-secondary">{{ reserva.data_inicio.strftime('%d/%m/%Y') }}</td>
+                                <td class="text-secondary">{{ reserva.data_fim.strftime('%d/%m/%Y') }}</td>
+                                <td class="fw-bold text-dark">{{ "%.2f"|format(reserva.valor_total) }}€</td>
+
+                                <!-- Estado Centralizado -->
+                                <td class="text-center" style="width: 130px;">
+                                    {% if reserva.status == 'Ativa' %}
+                                        <div class="d-flex align-items-center justify-content-center bg-success-subtle text-success border border-success-subtle rounded-pill fw-semibold px-2 py-1.5 small mx-auto" style="max-width: 90px; gap: 6px;">
+                                            <i class="bi bi-check-circle-fill d-flex"></i><span>Ativa</span>
+                                        </div>
+                                    {% elif reserva.status == 'Concluída' %}
+                                        <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill fw-semibold px-2 py-1.5 small mx-auto" style="max-width: 110px; gap: 6px;">
+                                            <i class="bi bi-clock-history d-flex"></i><span>Concluída</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="d-flex align-items-center justify-content-center bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-semibold px-2 py-1.5 small mx-auto" style="max-width: 110px; gap: 6px;">
+                                            <i class="bi bi-x-circle-fill d-flex"></i><span>Cancelada</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Coluna de Ações com Verificação Lógica -->
+                                <td class="text-center pe-4" style="width: 180px;">
+                                    {% if reserva.status == 'Ativa' %}
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <!-- Botão Editar (Abre página/modal) -->
+                                            <a href="{{ url_for('editar_reserva', reserva_id=reserva.id) }}" class="btn btn-sm btn-outline-dark fw-semibold" style="border-radius: 6px;">
+                                                <i class="bi bi-pencil-square me-1"></i>Editar
+                                            </a>
+                                            <!-- Botão Cancelar (Formulário POST direcionado para editar_reserva) -->
+                                            <form action="{{ url_for('editar_reserva', reserva_id=reserva.id) }}" method="POST" onsubmit="return confirm('Tem a certeza que deseja cancelar esta reserva?');" class="m-0">
+                                                <!-- Campo escondido que o Python espera para ativar o bloco de cancelamento -->
+                                                <input type="hidden" name="acao" value="cancelar">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold" style="border-radius: 6px;">
+                                                    <i class="bi bi-trash me-1"></i>Cancelar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

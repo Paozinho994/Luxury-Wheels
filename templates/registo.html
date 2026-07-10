@@ -1,0 +1,59 @@
+{% extends "index.html" %} <!-- Substitua pelo nome do seu template base se for diferente -->
+
+{% block content %}
+<div class="container" style="margin-top: 60px; margin-bottom: 60px;">
+    <!-- Cartão de Registo Estilizado -->
+    <div class="card search-card p-4 p-sm-5 mx-auto style-form shadow" style="max-width: 520px; border-radius: 12px; border: 1px solid #ced4da;">
+        
+        <!-- Cabeçalho do Formulário -->
+        <div class="text-center mb-4">
+            <div class="mb-2">
+                <i class="bi bi-person-plus-fill text-warning" style="font-size: 2.5rem;"></i>
+            </div>
+            <h2 class="fw-bold text-dark">Criar Conta</h2>
+            <p class="text-secondary small">Registe-se para começar a alugar veículos da nossa frota exclusiva</p>
+        </div>
+
+        <!-- Formulário -->
+        <form action="/registo" method="POST">
+            
+            <!-- Campo: Nome Completo -->
+            <div class="mb-3">
+                <label class="form-label text-secondary fw-semibold small">
+                    <i class="bi bi-person me-1"></i>Nome Completo
+                </label>
+                <input type="text" name="nome" class="form-control form-control-lg fs-6" style="height: 48px; border-radius: 8px;" placeholder="Ex: João Silva" required>
+            </div>
+
+            <!-- Campo: Email -->
+            <div class="mb-3">
+                <label class="form-label text-secondary fw-semibold small">
+                    <i class="bi bi-envelope me-1"></i>Endereço de Email
+                </label>
+                <input type="email" name="email" class="form-control form-control-lg fs-6" style="height: 48px; border-radius: 8px;" placeholder="nome@exemplo.com" required>
+            </div>
+
+            <!-- Campo: Password -->
+            <div class="mb-4">
+                <label class="form-label text-secondary fw-semibold small">
+                    <i class="bi bi-lock me-1"></i>Palavra-passe
+                </label>
+                <input type="password" name="password" class="form-control form-control-lg fs-6" style="height: 48px; border-radius: 8px;" placeholder="Crie uma password segura" required minlength="6">
+                <div class="form-text text-muted small mt-1">A password deve ter pelo menos 6 caracteres.</div>
+            </div>
+
+            <!-- Botão de Submissão -->
+            <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold py-2 shadow-sm text-dark mb-3" style="height: 48px; border-radius: 8px;">
+                Criar Conta
+            </button>
+        </form>
+
+        <!-- Link para Login -->
+        <div class="text-center mt-3 border-top pt-3">
+            <p class="text-secondary small mb-0">
+                Já tem uma conta registada? <a href="/login" class="text-dark fw-bold text-decoration-none" style="border-bottom: 2px solid #ba8b02;">Faça Login</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
